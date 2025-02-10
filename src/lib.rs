@@ -13,6 +13,13 @@
 )]
 #![cfg_attr(not(test), warn(clippy::unwrap_used))]
 
+//! ## `serde` support
+//!
+//! When the `serde` feature of this crate is enabled, `Serialize` and
+//! `Deserialize` are impl'd for the associated
+//! [`CurveArithmetic::Scalar`](primeorder::elliptic_curve::CurveArithmetic::Scalar)
+//! types of the curves.
+
 mod curve16;
 mod curve32;
 mod curve64;
