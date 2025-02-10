@@ -1,5 +1,7 @@
 use primeorder::{
-    elliptic_curve::{Curve, CurveArithmetic, FieldBytes, FieldBytesEncoding},
+    elliptic_curve::{
+        Curve, CurveArithmetic, FieldBytes, FieldBytesEncoding, PrimeCurveArithmetic,
+    },
     point_arithmetic::EquationAIsMinusThree,
     AffinePoint, PrimeCurve, PrimeCurveParams, ProjectivePoint,
 };
@@ -70,6 +72,10 @@ impl PrimeCurveParams for TinyCurve64 {
         FieldElement::new_unchecked(11619086278950426528),
         FieldElement::new_unchecked(2765382488766937725),
     );
+}
+
+impl PrimeCurveArithmetic for TinyCurve64 {
+    type CurveGroup = ProjectivePoint<Self>;
 }
 
 #[cfg(test)]
