@@ -1,13 +1,17 @@
 use ecdsa::{
-    hazmat::{DigestPrimitive, SignPrimitive},
+    hazmat::{DigestPrimitive, SignPrimitive, VerifyPrimitive},
     SignatureSize,
 };
 use primeorder::{
     elliptic_curve::{
-        generic_array::ArrayLength, ops::Reduce, CurveArithmetic, FieldBytes, PrimeCurve,
+        generic_array::ArrayLength, ops::Reduce, point::PointCompression, CurveArithmetic,
+        FieldBytes, PrimeCurve,
     },
-    PrimeField,
+    AffinePoint, PrimeField,
 };
+
+#[cfg(feature = "pkcs8")]
+use primeorder::elliptic_curve::pkcs8::{AssociatedOid, ObjectIdentifier};
 
 use crate::{
     curve16::TinyCurve16,
@@ -30,6 +34,12 @@ where
 {
 }
 
+impl VerifyPrimitive<TinyCurve16> for AffinePoint<TinyCurve16> {}
+
+impl VerifyPrimitive<TinyCurve32> for AffinePoint<TinyCurve32> {}
+
+impl VerifyPrimitive<TinyCurve64> for AffinePoint<TinyCurve64> {}
+
 impl DigestPrimitive for TinyCurve16 {
     type Digest = TinyHash<2>;
 }
@@ -42,17 +52,47 @@ impl DigestPrimitive for TinyCurve64 {
     type Digest = TinyHash<8>;
 }
 
+impl PointCompression for TinyCurve16 {
+    const COMPRESS_POINTS: bool = true;
+}
+
+impl PointCompression for TinyCurve32 {
+    const COMPRESS_POINTS: bool = true;
+}
+
+impl PointCompression for TinyCurve64 {
+    const COMPRESS_POINTS: bool = true;
+}
+
+#[cfg(feature = "pkcs8")]
+impl AssociatedOid for TinyCurve16 {
+    const OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.3.6.1.4.1.202767.1");
+}
+
+#[cfg(feature = "pkcs8")]
+impl AssociatedOid for TinyCurve32 {
+    const OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.3.6.1.4.1.202767.2");
+}
+
+#[cfg(feature = "pkcs8")]
+impl AssociatedOid for TinyCurve64 {
+    const OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.3.6.1.4.1.202767.3");
+}
+
 #[cfg(test)]
 mod tests {
-    use ecdsa::SigningKey;
+    use ecdsa::{SigningKey, VerifyingKey};
     use rand_core::OsRng;
 
     use crate::TinyCurve64;
 
     #[test]
     fn sign() {
-        let prehash = b"12345678";
+        let prehash = b"123456781234567812345678";
         let sk = SigningKey::<TinyCurve64>::random(&mut OsRng);
-        let _signature = sk.sign_prehash_recoverable(prehash);
+
+        let (signature, recovery_id) = sk.sign_prehash_recoverable(prehash).unwrap();
+        let vk = VerifyingKey::recover_from_prehash(prehash, &signature, recovery_id).unwrap();
+        assert_eq!(sk.verifying_key(), &vk);
     }
 }
