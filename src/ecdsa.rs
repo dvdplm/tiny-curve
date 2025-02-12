@@ -4,10 +4,14 @@ use ecdsa::{
 };
 use primeorder::{
     elliptic_curve::{
-        generic_array::ArrayLength, ops::Reduce, CurveArithmetic, FieldBytes, PrimeCurve,
+        generic_array::ArrayLength, ops::Reduce, point::PointCompression, CurveArithmetic,
+        FieldBytes, PrimeCurve,
     },
     AffinePoint, PrimeField,
 };
+
+#[cfg(feature = "pkcs8")]
+use primeorder::elliptic_curve::pkcs8::{AssociatedOid, ObjectIdentifier};
 
 use crate::{
     curve16::TinyCurve16,
@@ -46,6 +50,33 @@ impl DigestPrimitive for TinyCurve32 {
 
 impl DigestPrimitive for TinyCurve64 {
     type Digest = TinyHash<8>;
+}
+
+impl PointCompression for TinyCurve16 {
+    const COMPRESS_POINTS: bool = true;
+}
+
+impl PointCompression for TinyCurve32 {
+    const COMPRESS_POINTS: bool = true;
+}
+
+impl PointCompression for TinyCurve64 {
+    const COMPRESS_POINTS: bool = true;
+}
+
+#[cfg(feature = "pkcs8")]
+impl AssociatedOid for TinyCurve16 {
+    const OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.3.6.1.4.1.202767.1");
+}
+
+#[cfg(feature = "pkcs8")]
+impl AssociatedOid for TinyCurve32 {
+    const OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.3.6.1.4.1.202767.2");
+}
+
+#[cfg(feature = "pkcs8")]
+impl AssociatedOid for TinyCurve64 {
+    const OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.3.6.1.4.1.202767.3");
 }
 
 #[cfg(test)]

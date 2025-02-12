@@ -26,6 +26,7 @@ proptest = "1"
 
 [features]
 serde = ["ecdsa/serde", "primeorder/serde", "dep:serde"]
+pkcs8 = ["ecdsa/pkcs8"]
 
 [[bench]]
 bench = true
